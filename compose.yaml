@@ -14,6 +14,8 @@ services:
       - home:/home/malte
       # Live dotfiles from this checkout; edits apply to the next shell
       - ./home/.config:/home/malte/.config
+      # SSH keys of the host user running compose; PUID must own them for ssh to accept them
+      - ${HOME}/.ssh:/home/malte/.ssh
 
 volumes:
   home:

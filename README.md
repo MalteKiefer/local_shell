@@ -46,7 +46,7 @@ browser, otherwise the prompt shows placeholder boxes.
 | `ports` | Host port for the web terminal. Bind it to a single interface, for example `"100.64.0.10:7681:7681"`, to keep it off the LAN. |
 | `TZ` | Container timezone. |
 | `TTYD_CREDENTIAL` | `user:password` enables HTTP basic auth in front of the terminal. |
-| `volumes` | `home` holds `/home/malte`. Add bind mounts for any NAS folders you want inside. |
+| `volumes` | `home` holds `/home/malte`. `./home/.config` provides the live dotfiles, `${HOME}/.ssh` the SSH keys of the host user running compose. Add bind mounts for any NAS folders you want inside. |
 
 ### User and permissions
 
