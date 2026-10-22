@@ -23,6 +23,7 @@ disabled = false
 style = "bg:red fg:crust"
 [os.symbols]
 Macos = " "
+Debian = " "
 
 [username]
 show_always = true

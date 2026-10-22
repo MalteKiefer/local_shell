@@ -5,6 +5,7 @@ ARG PUID=1000
 ARG PGID=1000
 ARG TTYD_VERSION=1.7.7
 ARG STARSHIP_VERSION=1.26.0
+ARG NERDFONT_VERSION=3.5.1
 ARG TARGETARCH
 
 # HashiCorp apt repo for terraform, key pinned by fingerprint
@@ -23,7 +24,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         git less vim procps locales tini nodejs npm \
         zoxide fzf eza bat fd-find btop lazygit \
         w3m python3 python3-pip python3-venv golang-go rustc cargo \
-        ansible terraform sudo jq \
+        ansible terraform sudo jq xz-utils \
     && sed -i 's/# en_US.UTF-8/en_US.UTF-8/' /etc/locale.gen && locale-gen \
     && ln -s /usr/bin/batcat /usr/local/bin/bat \
     && ln -s /usr/bin/fdfind /usr/local/bin/fd \
@@ -51,6 +52,19 @@ RUN case "$TARGETARCH" in \
     && echo "$sum  /tmp/starship.tar.gz" | sha256sum -c - \
     && tar -xzf /tmp/starship.tar.gz -C /usr/local/bin starship \
     && rm /tmp/starship.tar.gz
+
+# ttyd page with the Nerd Font embedded, so browsers need no locally installed font.
+# ttyd serves its built-in page uncompressed to clients without gzip support (curl).
+COPY ttyd-index.py /tmp/ttyd-index.py
+RUN curl -fsSL -o /tmp/nf.tar.xz "https://github.com/ryanoasis/nerd-fonts/releases/download/v$NERDFONT_VERSION/JetBrainsMono.tar.xz" \
+    && echo "04d5e8f903693f9dd13e16f867e994834e681eb3c72c0d337a770dcda09010cf  /tmp/nf.tar.xz" | sha256sum -c - \
+    && tar -xJf /tmp/nf.tar.xz -C /tmp JetBrainsMonoNLNerdFontMono-Regular.ttf \
+    && { ttyd -p 7999 true >/dev/null 2>&1 & pid=$!; } \
+    && for i in $(seq 20); do curl -fsS -o /tmp/ttyd.html http://127.0.0.1:7999/ && break; sleep 0.5; done \
+    && kill "$pid" \
+    && mkdir -p /usr/local/share/ttyd \
+    && python3 -I /tmp/ttyd-index.py /tmp/ttyd.html /tmp/JetBrainsMonoNLNerdFontMono-Regular.ttf /usr/local/share/ttyd/index.html \
+    && rm /tmp/nf.tar.xz /tmp/JetBrainsMonoNLNerdFontMono-Regular.ttf /tmp/ttyd.html /tmp/ttyd-index.py
 
 # Match the NAS user so files in mounted folders keep the right owner
 RUN groupadd -g "$PGID" "$USERNAME" \
@@ -80,7 +94,6 @@ RUN curl -fsSL -o /tmp/claude_install.sh https://gist.githubusercontent.com/Malt
 EXPOSE 7681
 
 # -W: writable (ttyd is read only by default). TTYD_CREDENTIAL=user:pass enables basic auth.
-# The font is resolved in the browser, so the Nerd Font must be installed on the client.
-# Nerd Fonts v3 registers short "NF" family names on some systems, hence the list.
+# -I serves the page with the embedded Nerd Font built above.
 ENTRYPOINT ["tini", "--"]
-CMD ["sh", "-c", "exec ttyd -W -p 7681 -t 'fontFamily=JetBrainsMonoNL Nerd Font, JetBrainsMonoNL NF, JetBrainsMono Nerd Font, JetBrainsMono NF, monospace' -t 'theme={\"background\":\"#1e1e2e\",\"foreground\":\"#cdd6f4\",\"cursor\":\"#f5e0dc\"}' ${TTYD_CREDENTIAL:+-c \"$TTYD_CREDENTIAL\"} fish -l"]
+CMD ["sh", "-c", "exec ttyd -W -p 7681 -I /usr/local/share/ttyd/index.html -t 'fontFamily=JetBrainsMono NF Web, monospace' -t 'theme={\"background\":\"#1e1e2e\",\"foreground\":\"#cdd6f4\",\"cursor\":\"#f5e0dc\"}' ${TTYD_CREDENTIAL:+-c \"$TTYD_CREDENTIAL\"} fish -l"]

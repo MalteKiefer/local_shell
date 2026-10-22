@@ -34,9 +34,9 @@ docker compose up -d
 
 Open `http://<host>:7681` and log in with the credentials from `.env`.
 
-The browser terminal uses `JetBrainsMono Nerd Font` (NL or regular) for the prompt icons.
-Install a [Nerd Font](https://www.nerdfonts.com/) on the machine running the
-browser, otherwise the prompt shows placeholder boxes.
+The page embeds JetBrainsMono NL Nerd Font Mono (Nerd Fonts 3.5.1, pinned by
+SHA256), so prompt and `eza` icons work in any browser without a locally
+installed font. The page is about 3.5 MB because of that.
 
 ## Configuration
 
