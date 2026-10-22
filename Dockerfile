@@ -6,6 +6,7 @@ ARG PGID=1000
 ARG TTYD_VERSION=1.7.7
 ARG STARSHIP_VERSION=1.26.0
 ARG NERDFONT_VERSION=3.5.1
+ARG BUN_VERSION=1.4.2
 ARG TARGETARCH
 
 # HashiCorp apt repo for terraform, key pinned by fingerprint
@@ -52,6 +53,20 @@ RUN case "$TARGETARCH" in \
     && echo "$sum  /tmp/starship.tar.gz" | sha256sum -c - \
     && tar -xzf /tmp/starship.tar.gz -C /usr/local/bin starship \
     && rm /tmp/starship.tar.gz
+
+# bun from the pinned release instead of piping bun.sh/install into bash
+RUN case "$TARGETARCH" in \
+        amd64) a=x64;     sum=36368faef7527875d5ffa52e53cd48021741f2a83eb6208a8dd64068d422a913 ;; \
+        arm64) a=aarch64; sum=54328bbc2d9c8e0c9f892c544d66c57a83b84139e34909e5ee81758f1ac8fda7 ;; \
+        *) echo "unsupported arch: $TARGETARCH" >&2; exit 1 ;; \
+    esac \
+    && curl -fsSL -o /tmp/bun.zip "https://github.com/oven-sh/bun/releases/download/bun-v$BUN_VERSION/bun-linux-$a.zip" \
+    && echo "$sum  /tmp/bun.zip" | sha256sum -c - \
+    && python3 -I -m zipfile -e /tmp/bun.zip /tmp/bun \
+    && install -m 755 "/tmp/bun/bun-linux-$a/bun" /usr/local/bin/bun \
+    && ln -s bun /usr/local/bin/bunx \
+    && rm -r /tmp/bun.zip /tmp/bun \
+    && bun --version
 
 # ttyd page with the Nerd Font embedded, so browsers need no locally installed font.
 # ttyd serves its built-in page uncompressed to clients without gzip support (curl).

@@ -17,7 +17,7 @@ Base image: `debian:trixie-slim`
 | Shell | fish (with fisher, fzf.fish, autopair, puffer-fish, done), starship, zoxide |
 | CLI | curl, wget, openssh-client, rsync, git, jq, vim, less, w3m, sudo |
 | Modern replacements | eza, bat, fd, fzf, btop, lazygit |
-| Languages | python3 (pip, venv), Go, Rust (rustc, cargo), Node.js (npm, yarn) |
+| Languages | python3 (pip, venv), Go, Rust (rustc, cargo), Node.js (npm, yarn), bun |
 | Ops | ansible, terraform (HashiCorp apt repo) |
 | AI | Claude Code, plus plugins and skills from [`claude_install.sh`](https://gist.github.com/MalteKiefer/6445e7d1d69f1d0781cacd383a9bc1a5) |
 
@@ -131,7 +131,7 @@ text unless the network is encrypted.
 - The Docker socket is not mounted, and host paths only as listed above. Keep it
   that way unless you accept that the container can then control the host.
 
-Supply chain: `ttyd` and `starship` are pinned by SHA256, the HashiCorp key by fingerprint and
+Supply chain: `ttyd`, `starship`, `bun` and the Nerd Font are pinned by SHA256, the HashiCorp key by fingerprint and
 `claude_install.sh` by gist commit and SHA256. The install script itself pulls
 unpinned plugins, skills and npm/pip packages, so builds are not reproducible.
 
