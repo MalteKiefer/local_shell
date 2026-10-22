@@ -27,13 +27,14 @@ Theme is Catppuccin Mocha throughout: fish, starship, bat, fzf and the browser t
 
 ```bash
 git clone https://github.com/MalteKiefer/local_shell.git && cd local_shell
+cp .env.example .env    # then set a strong password in .env
 docker compose pull
 docker compose up -d
 ```
 
-Open `http://<host>:7681`.
+Open `http://<host>:7681` and log in with the credentials from `.env`.
 
-The browser terminal uses `JetBrainsMonoNL Nerd Font` for the prompt icons.
+The browser terminal uses `JetBrainsMono Nerd Font` (NL or regular) for the prompt icons.
 Install a [Nerd Font](https://www.nerdfonts.com/) on the machine running the
 browser, otherwise the prompt shows placeholder boxes.
 
@@ -45,8 +46,22 @@ browser, otherwise the prompt shows placeholder boxes.
 |---------|---------|
 | `ports` | Host port for the web terminal. Bind it to a single interface, for example `"100.64.0.10:7681:7681"`, to keep it off the LAN. |
 | `TZ` | Container timezone. |
-| `TTYD_CREDENTIAL` | `user:password` enables HTTP basic auth in front of the terminal. |
-| `volumes` | `home` holds `/home/malte`. `./home/.config` provides the live dotfiles, `${HOME}/.ssh` the SSH keys of the host user running compose. Add bind mounts for any NAS folders you want inside. |
+| `TTYD_CREDENTIAL` | `user:password` for HTTP basic auth, read from `.env`. Required: compose refuses to start without it. |
+| `volumes` | `home` holds `/home/malte`. `./home/.config` provides the live dotfiles. Add bind mounts for any NAS folders you want inside. |
+
+### SSH keys
+
+`~/.ssh/id_ed25519` and `id_ed25519.pub` of the host user running compose are
+mounted read-only. Only the key pair, never the whole directory: a writable
+`~/.ssh` would let anyone with the web shell add a key to the host's
+`authorized_keys`. `known_hosts` lives in the home volume.
+
+- The files must exist on the host. Otherwise Docker creates empty directories
+  in their place. Adjust the paths for other key types.
+- `PUID` must own the key and its mode must be `600`, or ssh rejects it.
+- Uncomment the `config` line in `compose.yaml` to use your SSH config as well.
+- Better: create a separate key just for this container, so revoking it does
+  not touch your main key.
 
 ### User and permissions
 
@@ -105,16 +120,18 @@ The image also contains a copy of `home/` as a fallback when the folder is not m
 ## Security
 
 This container hands out a shell with root via `sudo` to anyone who reaches the
-port. It has no TLS and, by default, no authentication.
+port and passes basic auth. It has no TLS, so the password travels in clear
+text unless the network is encrypted.
 
 - Only expose it on a private network or VPN (WireGuard, Tailscale, NetBird).
   Never forward the port to the internet.
 - Bind the port to the VPN interface, not `0.0.0.0`.
-- Set `TTYD_CREDENTIAL` as a second layer.
-- The Docker socket and host paths are not mounted. Keep it that way unless you
-  accept that the container can then control the host.
+- Use a strong `TTYD_CREDENTIAL`.
+- Anyone with the shell can read the mounted SSH private key.
+- The Docker socket is not mounted, and host paths only as listed above. Keep it
+  that way unless you accept that the container can then control the host.
 
-Supply chain: `ttyd` is pinned by SHA256, the HashiCorp key by fingerprint and
+Supply chain: `ttyd` and `starship` are pinned by SHA256, the HashiCorp key by fingerprint and
 `claude_install.sh` by gist commit and SHA256. The install script itself pulls
 unpinned plugins, skills and npm/pip packages, so builds are not reproducible.
 

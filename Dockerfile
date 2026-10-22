@@ -61,6 +61,8 @@ RUN groupadd -g "$PGID" "$USERNAME" \
 
 # Seeds the home volume on its first start; later changes need a fresh volume or a manual copy
 COPY --chown=$PUID:$PGID home/ /home/$USERNAME/
+# Pre-create so Docker does not create it as root when mounting the key files into it
+RUN install -d -m 700 -o "$PUID" -g "$PGID" /home/$USERNAME/.ssh
 
 ENV LANG=en_US.UTF-8 TERM=xterm-256color
 

@@ -9,13 +9,18 @@ services:
       - "7681:7681"
     environment:
       TZ: Europe/Berlin
-      # TTYD_CREDENTIAL: "malte:changeme"
+      # Basic auth for the web terminal, set in .env (see .env.example)
+      TTYD_CREDENTIAL: ${TTYD_CREDENTIAL:?set TTYD_CREDENTIAL=user:password in .env}
     volumes:
       - home:/home/malte
       # Live dotfiles from this checkout; edits apply to the next shell
       - ./home/.config:/home/malte/.config
-      # SSH keys of the host user running compose; PUID must own them for ssh to accept them
-      - ${HOME}/.ssh:/home/malte/.ssh
+      # Only the key pair, read-only: a writable ~/.ssh would expose the host's
+      # authorized_keys. known_hosts stays in the home volume.
+      # Files must exist on the host, otherwise Docker creates directories in their place.
+      - ${HOME}/.ssh/id_ed25519:/home/malte/.ssh/id_ed25519:ro
+      - ${HOME}/.ssh/id_ed25519.pub:/home/malte/.ssh/id_ed25519.pub:ro
+      # - ${HOME}/.ssh/config:/home/malte/.ssh/config:ro
 
 volumes:
   home:
