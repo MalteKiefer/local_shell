@@ -3,9 +3,7 @@ name: Build image
 on:
   push:
     branches: [main]
-  schedule:
-    - cron: "0 4 * * 1" # weekly, picks up new packages and claude-code releases
-  workflow_dispatch:
+  workflow_dispatch: # also started weekly by update.yml
 
 permissions:
   contents: read

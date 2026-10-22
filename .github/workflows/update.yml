@@ -1,0 +1,39 @@
+name: Weekly update
+
+on:
+  schedule:
+    - cron: "0 3 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write # to start build.yml
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test update script
+        run: python3 -I test_update_pins.py
+
+      - name: Bump pinned release binaries
+        shell: bash # explicit shell enables pipefail, so a failing script stops the job
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 -I update-pins.py Dockerfile | tee /tmp/bumps.txt
+          if git diff --quiet; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          { echo "Update pinned release binaries"; echo; cat /tmp/bumps.txt; } > /tmp/msg.txt
+          git commit -qa -F /tmp/msg.txt
+          git push
+
+      # Pushes made with GITHUB_TOKEN do not trigger other workflows, workflow_dispatch does.
+      # Runs weekly even without bumps to pick up Debian, npm and Claude plugin updates.
+      - name: Rebuild image
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run build.yml --ref main

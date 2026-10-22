@@ -83,11 +83,28 @@ The user has passwordless `sudo` inside the container.
 pushes it to `ghcr.io/maltekiefer/local_shell`:
 
 - on every push to `main`
-- weekly on Monday at 04:00 UTC, to pick up package and Claude Code updates
+- weekly, started by the update workflow below
 - manually via *Run workflow*
 
 Tags: `latest` and `sha-<commit>`. Only `linux/amd64` is built. Builds run
 without a layer cache: uploading it took longer than the time it saved.
+
+### Weekly updates
+
+[`.github/workflows/update.yml`](.github/workflows/update.yml) runs Monday at
+03:00 UTC:
+
+1. [`update-pins.py`](update-pins.py) bumps the pinned release binaries in the
+   Dockerfile (ttyd, starship, bun, Nerd Font) to their newest stable GitHub
+   release that is **at least 14 days old**, with fresh SHA256 hashes, and
+   commits the change to `main`.
+2. It then starts a full image build. That build also pulls the current
+   `debian:trixie-slim`, Debian packages, npm packages (Claude Code, yarn) and
+   the plugins from `claude_install.sh`.
+
+A broken update fails the build before anything is pushed, so `latest` keeps
+the previous working image. Not updated automatically: the GitHub Actions
+(pinned to major tags) and the `claude_install.sh` gist commit.
 
 Update a running container:
 
