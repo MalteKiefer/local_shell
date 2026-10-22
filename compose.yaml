@@ -12,6 +12,8 @@ services:
       # TTYD_CREDENTIAL: "malte:changeme"
     volumes:
       - home:/home/malte
+      # Live dotfiles from this checkout; edits apply to the next shell
+      - ./home/.config:/home/malte/.config
 
 volumes:
   home:

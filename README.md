@@ -26,8 +26,7 @@ Theme is Catppuccin Mocha throughout: fish, starship, bat, fzf and the browser t
 ## Quick start
 
 ```bash
-mkdir local_shell && cd local_shell
-curl -fsSLO https://raw.githubusercontent.com/MalteKiefer/local_shell/main/compose.yaml
+git clone https://github.com/MalteKiefer/local_shell.git && cd local_shell
 docker compose pull
 docker compose up -d
 ```
@@ -89,14 +88,18 @@ docker build -t local_shell \
 
 ## Dotfiles
 
-Everything under [`home/`](home/) is copied into the user's home in the image.
-Docker seeds the `home` volume from it **only on first start**, while the
-volume is empty. Later changes to `home/` do not reach an existing volume.
-Either copy the files in by hand or recreate the volume:
+`compose.yaml` bind-mounts `./home/.config` from the checkout to `~/.config`
+in the container. Edit the files on the host, in the container or via
+`git pull`: a new shell (or `exec fish`) picks them up. No rebuild needed.
 
-```bash
-docker compose down -v   # deletes everything in the container home
-```
+- Clone the repo as the host user matching `PUID`/`PGID`, so the container can write to it.
+- Every tool in the container writes its config to `~/.config`, so it lands in
+  `home/.config` on the host. [`home/.config/.gitignore`](home/.config/.gitignore)
+  tracks only `fish/`, `bat/` and `starship.toml`. The rest, including tokens
+  such as `gh/hosts.yml`, stays local and untracked. Never `git add -f` there.
+- A new bat theme needs `bat cache --build` once.
+
+The image also contains a copy of `home/` as a fallback when the folder is not mounted.
 
 ## Security
 

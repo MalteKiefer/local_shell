@@ -1,0 +1,7 @@
+# Mounted as ~/.config, so other tools write here too (gh tokens etc.). Track only the dotfiles.
+/*
+!/.gitignore
+!/fish/
+!/bat/
+!/starship.toml
+/fish/fish_variables
