@@ -1,0 +1,17 @@
+services:
+  webterm:
+    # Built by .github/workflows/build.yml. USERNAME/PUID/PGID are repo variables there.
+    image: ghcr.io/maltekiefer/local_shell:latest
+    container_name: webterm
+    restart: unless-stopped
+    hostname: nas-term
+    ports:
+      - "7681:7681"
+    environment:
+      TZ: Europe/Berlin
+      # TTYD_CREDENTIAL: "malte:changeme"
+    volumes:
+      - home:/home/malte
+
+volumes:
+  home:
