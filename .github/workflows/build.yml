@@ -44,7 +44,3 @@ jobs:
             USERNAME=${{ vars.USERNAME || 'malte' }}
             PUID=${{ vars.PUID || '1000' }}
             PGID=${{ vars.PGID || '1000' }}
-          # Cached layers would skip the updates the weekly run is for
-          no-cache: ${{ github.event_name == 'schedule' }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max

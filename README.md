@@ -68,10 +68,11 @@ The user has passwordless `sudo` inside the container.
 pushes it to `ghcr.io/maltekiefer/local_shell`:
 
 - on every push to `main`
-- weekly on Monday at 04:00 UTC, without cache, to pick up package and Claude Code updates
+- weekly on Monday at 04:00 UTC, to pick up package and Claude Code updates
 - manually via *Run workflow*
 
-Tags: `latest` and `sha-<commit>`. Only `linux/amd64` is built.
+Tags: `latest` and `sha-<commit>`. Only `linux/amd64` is built. Builds run
+without a layer cache: uploading it took longer than the time it saved.
 
 Update a running container:
 
