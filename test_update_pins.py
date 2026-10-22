@@ -11,10 +11,14 @@ spec.loader.exec_module(pins)
 NOW = datetime.datetime(2026, 10, 22, tzinfo=datetime.timezone.utc)
 
 
-def rel(tag, days_old, assets=("a",), prerelease=False):
-    published = (NOW - datetime.timedelta(days=days_old)).isoformat().replace("+00:00", "Z")
-    return {"tag_name": tag, "draft": False, "prerelease": prerelease,
-            "published_at": published, "assets": [{"name": n} for n in assets]}
+def ago(days):
+    return (NOW - datetime.timedelta(days=days)).isoformat().replace("+00:00", "Z")
+
+
+def rel(tag, days_old, assets=("a",), prerelease=False, asset_days_old=None):
+    updated = ago(days_old if asset_days_old is None else asset_days_old)
+    return {"tag_name": tag, "draft": False, "prerelease": prerelease, "published_at": ago(days_old),
+            "assets": [{"name": n, "updated_at": updated} for n in assets]}
 
 
 def test_pick_release():
@@ -22,6 +26,7 @@ def test_pick_release():
         rel("bun-v1.10.0", 3),                    # too new
         rel("bun-v1.9.0", 20, prerelease=True),   # prerelease
         rel("bun-v1.8.0", 20, assets=("b",)),     # missing asset
+        rel("bun-v1.7.0", 40, asset_days_old=2),  # asset replaced recently
         rel("bun-v1.4.2", 40),
         rel("bun-v1.10.0-canary", 40),            # tag does not match
         rel("bun-v1.3.14", 100),

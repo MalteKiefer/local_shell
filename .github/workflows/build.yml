@@ -5,6 +5,11 @@ on:
     branches: [main]
   workflow_dispatch: # also started weekly by update.yml
 
+# One build at a time; a newer run cancels an older one so it cannot overwrite latest
+concurrency:
+  group: build
+  cancel-in-progress: true
+
 permissions:
   contents: read
   packages: write

@@ -30,11 +30,16 @@ TOOLS = {
 
 
 def fetch(url, accept="application/vnd.github+json"):
-    headers = {"Accept": accept, "User-Agent": "update-pins"}
-    if os.environ.get("GH_TOKEN"):
-        headers["Authorization"] = f"Bearer {os.environ['GH_TOKEN']}"
-    with urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=120) as r:
+    req = urllib.request.Request(url, headers={"Accept": accept, "User-Agent": "update-pins"})
+    # Token only for the API, and as unredirected header: urllib forwards normal headers on redirects
+    if os.environ.get("GH_TOKEN") and url.startswith("https://api.github.com/"):
+        req.add_unredirected_header("Authorization", f"Bearer {os.environ['GH_TOKEN']}")
+    with urllib.request.urlopen(req, timeout=120) as r:
         return r.read()
+
+
+def parse_time(t):
+    return datetime.datetime.fromisoformat(t.replace("Z", "+00:00"))
 
 
 def parse_version(v):
@@ -49,10 +54,12 @@ def pick_release(releases, tag_format, asset_names, now):
         m = pattern.match(rel["tag_name"])
         if not m or rel["draft"] or rel["prerelease"]:
             continue
-        published = datetime.datetime.fromisoformat(rel["published_at"].replace("Z", "+00:00"))
-        if now - published < datetime.timedelta(days=MIN_AGE_DAYS):
+        by_name = {a["name"]: a for a in rel["assets"]}
+        if not set(asset_names) <= by_name.keys():
             continue
-        if not set(asset_names) <= {a["name"] for a in rel["assets"]}:
+        # Assets can be replaced after publishing, so they must be old enough too
+        stamps = [rel["published_at"]] + [by_name[n]["updated_at"] for n in asset_names]
+        if any(now - parse_time(t) < datetime.timedelta(days=MIN_AGE_DAYS) for t in stamps):
             continue
         if best is None or parse_version(m.group(1)) > parse_version(best[0]):
             best = (m.group(1), rel)
