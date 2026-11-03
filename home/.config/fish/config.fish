@@ -1,5 +1,6 @@
 set -g fish_greeting ""
-set -gx EDITOR vim
+set -gx EDITOR nvim
+set -gx VISUAL nvim
 set -gx BAT_THEME "Catppuccin Mocha"
 fish_add_path -g ~/.local/bin ~/go/bin ~/.cargo/bin
 
@@ -22,6 +23,7 @@ if status is-interactive
     abbr -a cat bat
     abbr -a top btop
     abbr -a lg  lazygit
+    abbr -a vim nvim
     abbr -a g   git
     abbr -a gs  git status
     abbr -a ga  git add

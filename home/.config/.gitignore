@@ -4,4 +4,6 @@
 !/fish/
 !/bat/
 !/starship.toml
+!/nvim/
+!/yazi/
 /fish/fish_variables

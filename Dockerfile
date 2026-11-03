@@ -15,6 +15,33 @@ ARG BUN_SHA256_AMD64=3e730528d89775f03f87f05c06787c4df4099d0a37f3f252e7b829cb238
 ARG BUN_SHA256_ARM64=efa9813da5ed72423bf847f916e8d2c47c0d776add972354026a75e10da9aa21
 ARG NERDFONT_VERSION=3.5.1
 ARG NERDFONT_SHA256=04d5e8f903693f9dd13e16f867e994834e681eb3c72c0d337a770dcda09010cf
+ARG NVIM_VERSION=0.12.6
+ARG NVIM_SHA256_AMD64=474430d53e6264f6d6dd18db42d6dc9df3a1b56ca9e88a325bbf860e1a811d87
+ARG NVIM_SHA256_ARM64=8f1f64a0bdb97247034038c3823c6cbad5bdf9ecd5751b85494b71c3ee04c815
+ARG TREESITTER_VERSION=0.27.1
+ARG TREESITTER_SHA256_AMD64=d01042f94ba3d6827ddc9788e235f75d8366431be42bdf90ade534d960c98b7d
+ARG TREESITTER_SHA256_ARM64=404be5d54a4955571c4067c21d4699660eab3a534cefb0659341b207f7139ec5
+ARG YAZI_VERSION=26.9.1
+ARG YAZI_SHA256_AMD64=9b9c39decccf8cb0ff53a7d637d38f8a79d93bbd0099f4ea9c619ef6bb392f5d
+ARG YAZI_SHA256_ARM64=dd569daecaae914185f295634109295ccd25c1b42b02eb89a74f651970024f2e
+ARG RUFF_VERSION=0.17.1
+ARG RUFF_SHA256_AMD64=2d9878b5e6a3d0dedadbfc01a64bfe54e72f560adbfd235937cd29e1fc9238e3
+ARG RUFF_SHA256_ARM64=255404ccf2f7950ff6aad8858321a6f416fe2a840ae4e37dfb4c21cb8774f325
+ARG LUALS_VERSION=3.19.2
+ARG LUALS_SHA256_AMD64=93ad326b10f6c00911dd8c450fa098332dbd8f9f45d1052f5636a2d54479b947
+ARG LUALS_SHA256_ARM64=17b8e401a874440adeb649e5024c364f2bb9d15156c74a40e56d1ae9a1b2e4f2
+ARG TAPLO_VERSION=0.10.0
+ARG TAPLO_SHA256_AMD64=8fe196b894ccf9072f98d4e1013a180306e17d244830b03986ee5e8eabeb6156
+ARG TAPLO_SHA256_ARM64=033681d01eec8376c3fd38fa3703c79316f5e14bb013d859943b60a07bccdcc3
+ARG STYLUA_VERSION=2.6.0
+ARG STYLUA_SHA256_AMD64=48ee7db28346f96f4bd545e190ab080a88a7b5a664e97649cf5d5c60426f402d
+ARG STYLUA_SHA256_ARM64=278495597e3827417f3af7b9ad38011ad4a5ec725503553160ab69b7301059bb
+ARG ACTIONLINT_VERSION=1.7.12
+ARG ACTIONLINT_SHA256_AMD64=8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8
+ARG ACTIONLINT_SHA256_ARM64=325e971b6ba9bfa504672e29be93c24981eeb1c07576d730e9f7c8805afff0c6
+ARG TFLINT_VERSION=0.64.0
+ARG TFLINT_SHA256_AMD64=cca9d13e2e1d7a2c627af60ff899a3c9b74212899416aeb96ec764d2ef954537
+ARG TFLINT_SHA256_ARM64=560da89aacf59389d4eb029730dd5b109b7288096c32f2726a0d9e783a5ea8eb
 ARG TARGETARCH
 
 # HashiCorp apt repo for terraform, key pinned by fingerprint
@@ -30,14 +57,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         fish wget openssh-client rsync \
-        git less vim procps locales tini nodejs npm \
-        zoxide fzf eza bat fd-find btop lazygit \
+        git less procps locales tini nodejs npm \
+        zoxide fzf eza bat fd-find btop lazygit ripgrep file \
         w3m python3 python3-pip python3-venv golang-go rustc cargo \
         ansible terraform sudo jq xz-utils \
+        gopls terraform-ls shellcheck shfmt git-delta awscli \
+        7zip poppler-utils imagemagick ffmpeg chafa resvg \
     && sed -i 's/# en_US.UTF-8/en_US.UTF-8/' /etc/locale.gen && locale-gen \
     && ln -s /usr/bin/batcat /usr/local/bin/bat \
     && ln -s /usr/bin/fdfind /usr/local/bin/fd \
     && npm install -g @anthropic-ai/claude-code yarn \
+        bash-language-server yaml-language-server vscode-langservers-extracted \
+        fish-lsp dockerfile-language-server-nodejs basedpyright \
     && npm cache clean --force \
     && rm -rf /var/lib/apt/lists/*
 
@@ -75,6 +106,76 @@ RUN case "$TARGETARCH" in \
     && ln -s bun /usr/local/bin/bunx \
     && rm -r /tmp/bun.zip /tmp/bun \
     && bun --version
+
+# Debian's nvim 0.10 is too old for the config (vim.lsp.config, winborder), use the pinned release
+RUN case "$TARGETARCH" in \
+        amd64) a=x86_64; sum=$NVIM_SHA256_AMD64 ;; \
+        arm64) a=arm64;  sum=$NVIM_SHA256_ARM64 ;; \
+        *) echo "unsupported arch: $TARGETARCH" >&2; exit 1 ;; \
+    esac \
+    && curl -fsSL -o /tmp/nvim.tar.gz "https://github.com/neovim/neovim/releases/download/v$NVIM_VERSION/nvim-linux-$a.tar.gz" \
+    && echo "$sum  /tmp/nvim.tar.gz" | sha256sum -c - \
+    && tar -xzf /tmp/nvim.tar.gz -C /opt \
+    && mv "/opt/nvim-linux-$a" /opt/nvim \
+    && ln -s /opt/nvim/bin/nvim /usr/local/bin/nvim \
+    && rm /tmp/nvim.tar.gz \
+    && nvim --version | head -n1
+
+# nvim-treesitter (main branch) builds parsers with the tree-sitter CLI
+RUN case "$TARGETARCH" in \
+        amd64) a=x64;   sum=$TREESITTER_SHA256_AMD64 ;; \
+        arm64) a=arm64; sum=$TREESITTER_SHA256_ARM64 ;; \
+        *) echo "unsupported arch: $TARGETARCH" >&2; exit 1 ;; \
+    esac \
+    && curl -fsSL -o /tmp/tree-sitter.gz "https://github.com/tree-sitter/tree-sitter/releases/download/v$TREESITTER_VERSION/tree-sitter-linux-$a.gz" \
+    && echo "$sum  /tmp/tree-sitter.gz" | sha256sum -c - \
+    && gunzip -c /tmp/tree-sitter.gz > /usr/local/bin/tree-sitter \
+    && chmod +x /usr/local/bin/tree-sitter \
+    && rm /tmp/tree-sitter.gz \
+    && tree-sitter --version
+
+# yazi is not packaged for trixie
+RUN case "$TARGETARCH" in \
+        amd64) a=x86_64;  sum=$YAZI_SHA256_AMD64 ;; \
+        arm64) a=aarch64; sum=$YAZI_SHA256_ARM64 ;; \
+        *) echo "unsupported arch: $TARGETARCH" >&2; exit 1 ;; \
+    esac \
+    && curl -fsSL -o /tmp/yazi.zip "https://github.com/sxyazi/yazi/releases/download/v$YAZI_VERSION/yazi-$a-unknown-linux-musl.zip" \
+    && echo "$sum  /tmp/yazi.zip" | sha256sum -c - \
+    && python3 -I -m zipfile -e /tmp/yazi.zip /tmp/yazi \
+    && install -m 755 "/tmp/yazi/yazi-$a-unknown-linux-musl/yazi" "/tmp/yazi/yazi-$a-unknown-linux-musl/ya" /usr/local/bin/ \
+    && rm -r /tmp/yazi.zip /tmp/yazi \
+    && yazi --version
+
+# LSP servers, formatters and linters for the nvim config that Debian does not package
+RUN case "$TARGETARCH" in \
+        amd64) x=x86_64;  g=amd64; l=x64 ;; \
+        arm64) x=aarch64; g=arm64; l=arm64 ;; \
+        *) echo "unsupported arch: $TARGETARCH" >&2; exit 1 ;; \
+    esac \
+    && sum() { if [ "$TARGETARCH" = amd64 ]; then echo "$1"; else echo "$2"; fi; } \
+    && get() { curl -fsSL -o "$1" "$2" && echo "$3  $1" | sha256sum -c -; } \
+    && mkdir /tmp/tools && cd /tmp/tools \
+    && get ruff.tar.gz "https://github.com/astral-sh/ruff/releases/download/$RUFF_VERSION/ruff-$x-unknown-linux-musl.tar.gz" "$(sum $RUFF_SHA256_AMD64 $RUFF_SHA256_ARM64)" \
+    && tar -xzf ruff.tar.gz --strip-components=1 -C /usr/local/bin "ruff-$x-unknown-linux-musl/ruff" \
+    && get luals.tar.gz "https://github.com/LuaLS/lua-language-server/releases/download/$LUALS_VERSION/lua-language-server-$LUALS_VERSION-linux-$l.tar.gz" "$(sum $LUALS_SHA256_AMD64 $LUALS_SHA256_ARM64)" \
+    && mkdir /opt/lua-language-server && tar -xzf luals.tar.gz -C /opt/lua-language-server \
+    && printf '%s\n' '#!/bin/sh' '# Default log and meta paths are inside the read-only install dir' \
+        'c="${XDG_CACHE_HOME:-$HOME/.cache}/lua-language-server"' \
+        'exec /opt/lua-language-server/bin/lua-language-server --logpath="$c/log" --metapath="$c/meta" "$@"' \
+        > /usr/local/bin/lua-language-server \
+    && chmod +x /usr/local/bin/lua-language-server \
+    && get taplo.gz "https://github.com/tamasfe/taplo/releases/download/$TAPLO_VERSION/taplo-linux-$x.gz" "$(sum $TAPLO_SHA256_AMD64 $TAPLO_SHA256_ARM64)" \
+    && gunzip -c taplo.gz > /usr/local/bin/taplo && chmod +x /usr/local/bin/taplo \
+    && get stylua.zip "https://github.com/JohnnyMorganz/StyLua/releases/download/v$STYLUA_VERSION/stylua-linux-$x-musl.zip" "$(sum $STYLUA_SHA256_AMD64 $STYLUA_SHA256_ARM64)" \
+    && python3 -I -m zipfile -e stylua.zip . && install stylua /usr/local/bin/ \
+    && get actionlint.tar.gz "https://github.com/rhysd/actionlint/releases/download/v$ACTIONLINT_VERSION/actionlint_${ACTIONLINT_VERSION}_linux_$g.tar.gz" "$(sum $ACTIONLINT_SHA256_AMD64 $ACTIONLINT_SHA256_ARM64)" \
+    && tar -xzf actionlint.tar.gz -C /usr/local/bin actionlint \
+    && get tflint.zip "https://github.com/terraform-linters/tflint/releases/download/v$TFLINT_VERSION/tflint_linux_$g.zip" "$(sum $TFLINT_SHA256_AMD64 $TFLINT_SHA256_ARM64)" \
+    && python3 -I -m zipfile -e tflint.zip . && install tflint /usr/local/bin/ \
+    && cd / && rm -r /tmp/tools \
+    && ruff --version && lua-language-server --version && taplo --version \
+    && stylua --version && actionlint --version && tflint --version
 
 # ttyd page with the Nerd Font embedded, so browsers need no locally installed font.
 # ttyd serves its built-in page uncompressed to clients without gzip support (curl).

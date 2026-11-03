@@ -26,6 +26,33 @@ TOOLS = {
     }),
     "BUN": ("oven-sh/bun", "bun-v{v}", {"AMD64": "bun-linux-x64.zip", "ARM64": "bun-linux-aarch64.zip"}),
     "NERDFONT": ("ryanoasis/nerd-fonts", "v{v}", {"": "JetBrainsMono.tar.xz"}),
+    "NVIM": ("neovim/neovim", "v{v}", {"AMD64": "nvim-linux-x86_64.tar.gz", "ARM64": "nvim-linux-arm64.tar.gz"}),
+    "TREESITTER": ("tree-sitter/tree-sitter", "v{v}", {
+        "AMD64": "tree-sitter-linux-x64.gz",
+        "ARM64": "tree-sitter-linux-arm64.gz",
+    }),
+    "YAZI": ("sxyazi/yazi", "v{v}", {
+        "AMD64": "yazi-x86_64-unknown-linux-musl.zip",
+        "ARM64": "yazi-aarch64-unknown-linux-musl.zip",
+    }),
+    "RUFF": ("astral-sh/ruff", "{v}", {
+        "AMD64": "ruff-x86_64-unknown-linux-musl.tar.gz",
+        "ARM64": "ruff-aarch64-unknown-linux-musl.tar.gz",
+    }),
+    "LUALS": ("LuaLS/lua-language-server", "{v}", {
+        "AMD64": "lua-language-server-{v}-linux-x64.tar.gz",
+        "ARM64": "lua-language-server-{v}-linux-arm64.tar.gz",
+    }),
+    "TAPLO": ("tamasfe/taplo", "{v}", {"AMD64": "taplo-linux-x86_64.gz", "ARM64": "taplo-linux-aarch64.gz"}),
+    "STYLUA": ("JohnnyMorganz/StyLua", "v{v}", {
+        "AMD64": "stylua-linux-x86_64-musl.zip",
+        "ARM64": "stylua-linux-aarch64-musl.zip",
+    }),
+    "ACTIONLINT": ("rhysd/actionlint", "v{v}", {
+        "AMD64": "actionlint_{v}_linux_amd64.tar.gz",
+        "ARM64": "actionlint_{v}_linux_arm64.tar.gz",
+    }),
+    "TFLINT": ("terraform-linters/tflint", "v{v}", {"AMD64": "tflint_linux_amd64.zip", "ARM64": "tflint_linux_arm64.zip"}),
 }
 
 
@@ -46,6 +73,11 @@ def parse_version(v):
     return tuple(int(p) for p in v.split("."))
 
 
+def asset_name(template, version):
+    """Some projects put the version into the asset name, written as {v} in TOOLS."""
+    return template.replace("{v}", version)
+
+
 def pick_release(releases, tag_format, asset_names, now):
     """Newest stable release old enough and carrying every needed asset, as (version, release)."""
     pattern = re.compile("^" + re.escape(tag_format).replace(re.escape("{v}"), r"(\d+(?:\.\d+)*)") + "$")
@@ -55,10 +87,11 @@ def pick_release(releases, tag_format, asset_names, now):
         if not m or rel["draft"] or rel["prerelease"]:
             continue
         by_name = {a["name"]: a for a in rel["assets"]}
-        if not set(asset_names) <= by_name.keys():
+        names = [asset_name(n, m.group(1)) for n in asset_names]
+        if not set(names) <= by_name.keys():
             continue
         # Assets can be replaced after publishing, so they must be old enough too
-        stamps = [rel["published_at"]] + [by_name[n]["updated_at"] for n in asset_names]
+        stamps = [rel["published_at"]] + [by_name[n]["updated_at"] for n in names]
         if any(now - parse_time(t) < datetime.timedelta(days=MIN_AGE_DAYS) for t in stamps):
             continue
         if best is None or parse_version(m.group(1)) > parse_version(best[0]):
@@ -101,7 +134,7 @@ def main():
         text = set_arg(text, f"{prefix}_VERSION", version)
         for arch, name in assets.items():
             arg = f"{prefix}_SHA256" + (f"_{arch}" if arch else "")
-            text = set_arg(text, arg, asset_sha256(by_name[name]))
+            text = set_arg(text, arg, asset_sha256(by_name[asset_name(name, version)]))
         print(f"{prefix.lower()} {current} -> {version}")
     open(path, "w", encoding="utf-8").write(text)
 

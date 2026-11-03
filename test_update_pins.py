@@ -34,6 +34,9 @@ def test_pick_release():
     assert pins.pick_release(releases, "bun-v{v}", ["a"], NOW)[0] == "1.4.2"
     assert pins.pick_release([rel("1.7.7", 400)], "{v}", ["a"], NOW)[0] == "1.7.7"
     assert pins.pick_release([rel("v1.0", 1)], "v{v}", ["a"], NOW) is None
+    # Version inside the asset name
+    assert pins.pick_release([rel("v1.2.3", 40, assets=("tool_1.2.3_linux.tar.gz",))],
+                             "v{v}", ["tool_{v}_linux.tar.gz"], NOW)[0] == "1.2.3"
 
 
 def test_set_arg():

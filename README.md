@@ -15,13 +15,16 @@ Base image: `debian:trixie-slim`
 | Area | Tools |
 |------|-------|
 | Shell | fish (with fisher, fzf.fish, autopair, puffer-fish, done), starship, zoxide |
-| CLI | curl, wget, openssh-client, rsync, git, jq, vim, less, w3m, sudo |
+| CLI | curl, wget, openssh-client, rsync, git, jq, less, w3m, sudo, ripgrep, file |
+| Editor & files | Neovim (lazy.nvim, Treesitter via tree-sitter CLI), yazi (`y` changes to the last folder on quit) |
+| Editor tooling | LSP: gopls, terraform-ls, tflint, ruff, basedpyright, lua-language-server, bash/yaml/json/fish/Dockerfile language servers, taplo. Format/lint: shfmt, stylua, shellcheck, actionlint. Also git-delta, awscli |
+| yazi previews | 7zip, poppler-utils, imagemagick, ffmpeg, chafa, resvg |
 | Modern replacements | eza, bat, fd, fzf, btop, lazygit |
 | Languages | python3 (pip, venv), Go, Rust (rustc, cargo), Node.js (npm, yarn), bun |
 | Ops | ansible, terraform (HashiCorp apt repo) |
 | AI | Claude Code, plus plugins and skills from [`claude_install.sh`](https://gist.github.com/MalteKiefer/6445e7d1d69f1d0781cacd383a9bc1a5) |
 
-Theme is Catppuccin Mocha throughout: fish, starship, bat, fzf and the browser terminal.
+Theme is Catppuccin Mocha throughout: fish, starship, bat, fzf, Neovim, yazi and the browser terminal.
 
 ## Quick start
 
@@ -95,11 +98,11 @@ without a layer cache: uploading it took longer than the time it saved.
 03:00 UTC:
 
 1. [`update-pins.py`](update-pins.py) bumps the pinned release binaries in the
-   Dockerfile (ttyd, starship, bun, Nerd Font) to their newest stable GitHub
+   Dockerfile (ttyd, starship, bun, Nerd Font, Neovim, tree-sitter, yazi, ruff, lua-language-server, taplo, stylua, actionlint, tflint) to their newest stable GitHub
    release that is **at least 14 days old**, with fresh SHA256 hashes, and
    commits the change to `main`.
 2. It then starts a full image build. That build also pulls the current
-   `debian:trixie-slim`, Debian packages, npm packages (Claude Code, yarn) and
+   `debian:trixie-slim`, Debian packages, npm packages (Claude Code, yarn, the Node based language servers) and
    the plugins from `claude_install.sh`.
 
 A broken update fails the build before anything is pushed, so `latest` keeps
@@ -128,9 +131,12 @@ in the container. Edit the files on the host, in the container or via
 - Clone the repo as the host user matching `PUID`/`PGID`, so the container can write to it.
 - Every tool in the container writes its config to `~/.config`, so it lands in
   `home/.config` on the host. [`home/.config/.gitignore`](home/.config/.gitignore)
-  tracks only `fish/`, `bat/` and `starship.toml`. The rest, including tokens
+  tracks only `fish/`, `bat/`, `nvim/`, `yazi/` and `starship.toml`. The rest, including tokens
   such as `gh/hosts.yml`, stays local and untracked. Never `git add -f` there.
 - A new bat theme needs `bat cache --build` once.
+- Neovim installs its plugins with lazy.nvim on the first start (needs network) and
+  enables only the LSP servers it finds on `PATH`.
+- yazi plugins and the flavor are committed under `yazi/`. Update them with `ya pkg upgrade`.
 
 The image also contains a copy of `home/` as a fallback when the folder is not mounted.
 
@@ -148,7 +154,7 @@ text unless the network is encrypted.
 - The Docker socket is not mounted, and host paths only as listed above. Keep it
   that way unless you accept that the container can then control the host.
 
-Supply chain: `ttyd`, `starship`, `bun` and the Nerd Font are pinned by SHA256, the HashiCorp key by fingerprint and
+Supply chain: `ttyd`, `starship`, `bun`, the Nerd Font, Neovim, tree-sitter, yazi and the editor tools from GitHub releases are pinned by SHA256, the HashiCorp key by fingerprint and
 `claude_install.sh` by gist commit and SHA256. The install script itself pulls
 unpinned plugins, skills and npm/pip packages, so builds are not reproducible.
 

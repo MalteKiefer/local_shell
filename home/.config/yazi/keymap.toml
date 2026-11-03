@@ -1,0 +1,53 @@
+# ~/.config/yazi/keymap.toml — ergänzt die Standardbelegung
+
+# Navigation
+[[mgr.prepend_keymap]]
+on = "l"
+run = "plugin smart-enter"
+desc = "Ordner betreten / Datei öffnen"
+
+[[mgr.prepend_keymap]]
+on = "T"
+run = "plugin toggle-pane max-preview"
+desc = "Vorschau maximieren"
+
+[[mgr.prepend_keymap]]
+on = ["g", "n"]
+run = "cd ~/.config/nvim"
+desc = "nvim-Config"
+
+[[mgr.prepend_keymap]]
+on = ["g", "f"]
+run = "cd ~/.config/fish"
+desc = "fish-Config"
+
+[[mgr.prepend_keymap]]
+on = ["g", "a"]
+run = "cd ~/.aws"
+desc = "AWS-Config"
+
+# Tools
+[[mgr.prepend_keymap]]
+on = ["g", "i"]
+run = 'shell "lazygit" --block'
+desc = "lazygit"
+
+[[mgr.prepend_keymap]]
+on = "<C-n>"
+run = 'shell "nvim ." --block'
+desc = "nvim im aktuellen Ordner"
+
+[[mgr.prepend_keymap]]
+on = "!"
+run = 'shell "$SHELL" --block'
+desc = "fish hier öffnen"
+
+[[mgr.prepend_keymap]]
+on = ["c", "m"]
+run = "plugin chmod"
+desc = "Rechte ändern"
+
+[[mgr.prepend_keymap]]
+on = ["g", "r"]
+run = 'shell "xdg-open \"$(dirname \"$0\")\"" --orphan'
+desc = "Im Dateimanager zeigen"

@@ -1,0 +1,37 @@
+# ~/.config/yazi/yazi.toml
+
+[mgr]
+ratio = [1, 3, 4]           # Eltern | aktuell | Vorschau
+sort_by = "natural"
+sort_dir_first = true
+sort_sensitive = false
+show_hidden = true
+show_symlink = true
+linemode = "size_and_mtime" # definiert in init.lua
+scrolloff = 6
+
+[preview]
+wrap = "no"
+tab_size = 2
+max_width = 1200   # HiDPI-Display
+max_height = 1800
+image_quality = 85
+
+[opener]
+edit = [{ run = 'nvim "$@"', block = true, desc = "nvim", for = "unix" }]
+open = [{ run = 'xdg-open "$1"', desc = "Öffnen", for = "linux" }]
+reveal = [
+  { run = 'xdg-open "$(dirname "$1")"', desc = "Im Dateimanager zeigen", orphan = true, for = "linux" },
+  { run = 'kitty --class yazi -e yazi "$1"', desc = "In neuem yazi zeigen", orphan = true, for = "linux" },
+]
+
+# Git-Status neben den Dateien (Plugin git.yazi)
+[[plugin.prepend_fetchers]]
+group = "git"
+url = "*"
+run = "git"
+
+[[plugin.prepend_fetchers]]
+group = "git"
+url = "*/"
+run = "git"
