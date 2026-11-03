@@ -18,7 +18,7 @@ Base image: `debian:trixie-slim`
 | CLI | curl, wget, openssh-client, rsync, git, jq, less, w3m, sudo, ripgrep, file |
 | Editor & files | Neovim (lazy.nvim, Treesitter via tree-sitter CLI), yazi (`y` changes to the last folder on quit) |
 | Editor tooling | LSP: gopls, terraform-ls, tflint, ruff, basedpyright, lua-language-server, bash/yaml/json/fish/Dockerfile language servers, taplo. Format/lint: shfmt, stylua, shellcheck, actionlint. Also git-delta, awscli |
-| yazi previews | 7zip, poppler-utils, imagemagick, ffmpeg, chafa, resvg |
+| yazi previews | 7zip, poppler-utils, chafa |
 | Modern replacements | eza, bat, fd, fzf, btop, lazygit |
 | Languages | python3 (pip, venv), Go, Rust (rustc, cargo), Node.js (npm, yarn), bun |
 | Ops | ansible, terraform (HashiCorp apt repo) |

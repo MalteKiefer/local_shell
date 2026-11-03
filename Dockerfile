@@ -62,7 +62,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         w3m python3 python3-pip python3-venv golang-go rustc cargo \
         ansible terraform sudo jq xz-utils \
         gopls terraform-ls shellcheck shfmt git-delta awscli \
-        7zip poppler-utils imagemagick ffmpeg chafa resvg \
+        7zip poppler-utils chafa \
     && sed -i 's/# en_US.UTF-8/en_US.UTF-8/' /etc/locale.gen && locale-gen \
     && ln -s /usr/bin/batcat /usr/local/bin/bat \
     && ln -s /usr/bin/fdfind /usr/local/bin/fd \
